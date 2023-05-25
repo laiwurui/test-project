@@ -5,11 +5,15 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.pedia.starter.security.authorization.password.OAuth2UsernamePasswordAuthenticationConverter;
+import org.pedia.starter.security.authorization.password.OAuth2UsernamePasswordAuthenticationProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Role;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,17 +22,21 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -41,14 +49,7 @@ import java.util.UUID;
 @SuppressWarnings("all")
 public class OAuth2AuthorizationServerSecurityConfiguration {
 
-    @Bean
-    @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        return http.formLogin(Customizer.withDefaults()).build();
-    }
-
-    @Bean
+//    @Bean
     @Order(2)
     public SecurityFilterChain standardSecurityFilterChain(HttpSecurity http) throws Exception {
         // @formatter:off
@@ -60,6 +61,49 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
         // @formatter:on
 
         return http.build();
+    }
+
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+
+        authorizationServerConfigurer.tokenEndpoint((tokenEndpoint) -> tokenEndpoint.accessTokenRequestConverter(
+                        new OAuth2UsernamePasswordAuthenticationConverter()
+                ));
+
+        RequestMatcher endpointsMatcher = authorizationServerConfigurer
+                .getEndpointsMatcher();
+        http
+                .requestMatcher(endpointsMatcher)
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests.anyRequest().authenticated()
+                )
+                .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+                .apply(authorizationServerConfigurer);
+
+        SecurityFilterChain securityFilterChain = http.formLogin(Customizer.withDefaults()).build();
+
+        /**
+         * Custom configuration for Resource Owner Password grant type. Current implementation has no support for Resource Owner
+         * Password grant type
+         */
+        addCustomAuthenticationProvider(http);
+
+        return securityFilterChain;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addCustomAuthenticationProvider(HttpSecurity http) {
+
+        AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+        OAuth2AuthorizationService authorizationService = http.getSharedObject(OAuth2AuthorizationService.class);
+        OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
+
+        OAuth2UsernamePasswordAuthenticationProvider resourceOwnerPasswordAuthenticationProvider =
+                new OAuth2UsernamePasswordAuthenticationProvider(authenticationManager, authorizationService, tokenGenerator);
+        // This will add new authentication provider in the list of existing authentication providers.
+        http.authenticationProvider(resourceOwnerPasswordAuthenticationProvider);
     }
 
     @Bean
@@ -82,6 +126,7 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
                 .clientSecret("{noop}secret")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .authorizationGrantType(AuthorizationGrantType.PASSWORD)
                 .scope("message:write")
                 .scope("message:read")
                 .build();
@@ -121,7 +166,7 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
         UserDetails userDetails = User.withDefaultPasswordEncoder()
                 .username("admin")
                 .password("123456")
-                .roles("admin")
+                .roles("admin","user")
                 .build();
         // @formatter:on
 
