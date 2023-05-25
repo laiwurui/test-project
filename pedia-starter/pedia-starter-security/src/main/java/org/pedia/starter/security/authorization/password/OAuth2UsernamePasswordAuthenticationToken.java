@@ -14,7 +14,6 @@ import org.springframework.util.Assert;
 
 /**
  * 自定义Oauth2 密码模式认证Token
- * @author zhongyu
  */
 public class OAuth2UsernamePasswordAuthenticationToken extends AbstractAuthenticationToken {
 

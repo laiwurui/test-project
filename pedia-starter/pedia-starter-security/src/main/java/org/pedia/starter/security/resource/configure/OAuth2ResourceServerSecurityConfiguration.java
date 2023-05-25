@@ -24,11 +24,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.function.BiFunction;
 
-/**
- * OAuth resource configuration.
- *
- * @author Josh Cummings
- */
 @AutoConfiguration
 @EnableWebSecurity
 @AllArgsConstructor
