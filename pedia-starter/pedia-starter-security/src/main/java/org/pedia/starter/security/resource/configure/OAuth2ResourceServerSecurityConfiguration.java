@@ -2,43 +2,43 @@ package org.pedia.starter.security.resource.configure;
 
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.function.BiFunction;
-
+/**
+ * OAuth resource auto configuration.
+ */
 @AutoConfiguration
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @SuppressWarnings("all")
 public class OAuth2ResourceServerSecurityConfiguration {
 
 //    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
 //    String jwkSetUri;
 
-    private final JwtDecoder jwtDecoder;
 
     @Bean
-    public SecurityFilterChain resourceServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain resourceServerSecurityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
         // @formatter:off
         http
+                .authorizeRequests().anyRequest().authenticated().and()
+                .formLogin(Customizer.withDefaults())
 //                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .oauth2ResourceServer()
                 .jwt()
@@ -73,9 +73,10 @@ public class OAuth2ResourceServerSecurityConfiguration {
         return converter;
     }
 
-//    @Bean
-//    JwtDecoder jwtDecoder() {
-//        return NimbusJwtDecoder.withJwkSetUri(this.jwkSetUri).build();
-//    }
+    @Bean
+    @ConditionalOnMissingBean
+    public RegisteredClientRepository JdbcRegisteredClientRepository(JdbcTemplate jdbcTemplate) {
+        return new JdbcRegisteredClientRepository(jdbcTemplate);
+    }
 
 }

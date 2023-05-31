@@ -13,6 +13,7 @@ public class CommonComponentRegister {
     }
 
     @Bean
+    @ConditionalOnMissingBean(ApplicationUtil.class)
     public ApplicationUtil applicationUtil() {
         return new ApplicationUtil();
     }

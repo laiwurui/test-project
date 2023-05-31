@@ -95,24 +95,24 @@ public class Result<T> implements Serializable {
         }
     }
 
-    public static <T> Result<T> success(){
+    public static <T> Result<T> success() {
         return success(EStatus.SUCCESS.getMessage(), EStatus.SUCCESS.getStatus(), null);
     }
 
-    public static <T> Result<T> success(T data){
+    public static <T> Result<T> success(T data) {
         return success(EStatus.SUCCESS.getMessage(), EStatus.SUCCESS.getStatus(), data);
     }
 
 
-    public static <T> Result<T> success(String message,T data){
+    public static <T> Result<T> success(String message, T data) {
         return success(message, EStatus.SUCCESS.getStatus(), data);
     }
 
-    public static <T> Result<T> success (String message,  Integer status ,T data){
+    public static <T> Result<T> success(String message, Integer status ,T data) {
         return new Result<>(message,status,data,null);
     }
 
-    public static <T> Result<T> err (){
+    public static <T> Result<T> err() {
         return new Result<>(EStatus.FAIL.getMessage(),EStatus.FAIL.getStatus(), null,null);
     }
 
@@ -123,39 +123,39 @@ public class Result<T> implements Serializable {
      * @return Result<T>
      * @author lwr
      */
-    public static <T> Result<T> err(Exception e){
+    public static <T> Result<T> err(Exception e) {
         Error error = buildError(e);
         String message = error != null ? error.getMessage() : e.getMessage();
         return new Result<>(message, EStatus.FAIL.getStatus(), null, error);
     }
 
-    public static <T> Result<T> err(String message){
+    public static <T> Result<T> err(String message) {
         return new Result<>(message, EStatus.FAIL.getStatus(), null, null);
     }
 
-    public static <T> Result<T> err(Exception e, String message){
+    public static <T> Result<T> err(Exception e, String message) {
         return new Result<>(message, EStatus.FAIL.getStatus(), null, buildError(e));
     }
 
-    public static <T> Result<T> err(Exception e, Integer status){
+    public static <T> Result<T> err(Exception e, Integer status) {
         Error error = buildError(e);
         String message = error != null ? error.getMessage() : e.getMessage();
         return new Result<>(message, status, null, buildError(e));
     }
 
-    public static <T> Result<T> err(String message,T data){
+    public static <T> Result<T> err(String message,T data) {
         return new Result<>(message, EStatus.FAIL.getStatus(), data, null);
     }
 
-    public static <T> Result<T> err(Exception e, String message,T data){
+    public static <T> Result<T> err(Exception e, String message,T data) {
         return new Result<>(message, EStatus.FAIL.getStatus(), data, buildError(e));
     }
 
-    public static <T> Result<T> err(String message, Integer status ,T data){
+    public static <T> Result<T> err(String message, Integer status ,T data) {
         return new Result<>(message, status, data, null);
     }
 
-    public static <T> Result<T> err(Exception e, String message, Integer status ,T data){
+    public static <T> Result<T> err(Exception e, String message, Integer status ,T data) {
         return new Result<>(message, status, data, buildError(e));
     }
 

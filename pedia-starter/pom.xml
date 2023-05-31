@@ -15,8 +15,9 @@
         <module>pedia-starter-datasource</module>
         <module>pedia-starter-redis</module>
         <module>pedia-starter-security</module>
-        <module>pedia-starter-tenant</module>
+        <module>pedia-starter-saas</module>
         <module>pedia-starter-oss-support</module>
+        <module>pedia-starter-logging</module>
     </modules>
 
     <properties>
