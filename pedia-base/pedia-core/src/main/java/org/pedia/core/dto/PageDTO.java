@@ -16,6 +16,8 @@ import lombok.experimental.Accessors;
 @Builder
 public class PageDTO {
 
+    private String id;
+
     private Integer pageNum;
 
     private Integer pageSize;

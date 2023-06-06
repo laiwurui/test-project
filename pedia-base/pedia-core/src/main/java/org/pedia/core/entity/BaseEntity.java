@@ -45,6 +45,11 @@ public class BaseEntity implements Serializable {
     protected Date updateTime;
 
     /**
+     * 数据权限标识
+     */
+    protected String permission;
+
+    /**
      * 删除标识(1:DELETE,0:NORMAL)
      */
     protected Integer delFlag;

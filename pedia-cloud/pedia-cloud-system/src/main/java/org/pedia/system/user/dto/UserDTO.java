@@ -1,20 +1,20 @@
-package org.pedia.system.user.entity;
+package org.pedia.system.user.dto;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.pedia.core.entity.BaseEntity;
+import org.pedia.core.dto.PageDTO;
+
+import java.util.List;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@TableName("t_user")
-public class User extends BaseEntity {
-
-    private static final long serialVersionUID = 481321542L;
+@Builder
+public class UserDTO extends PageDTO {
 
     /**
      * 用户名称
@@ -65,4 +65,9 @@ public class User extends BaseEntity {
      * 部门id
      */
     private String deptId;
+
+    /**
+     * 角色id
+     */
+    private List<String> roleIds;
 }
