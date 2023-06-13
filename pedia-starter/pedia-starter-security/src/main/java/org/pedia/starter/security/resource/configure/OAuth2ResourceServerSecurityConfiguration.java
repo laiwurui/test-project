@@ -2,36 +2,36 @@ package org.pedia.starter.security.resource.configure;
 
 
 import lombok.AllArgsConstructor;
+import org.pedia.starter.security.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.security.KeyPair;
+import java.security.interfaces.RSAPublicKey;
+
 /**
  * OAuth resource auto configuration.
  */
-@AutoConfiguration
+@AutoConfiguration(after = SecurityAutoConfiguration.class)
 @EnableWebSecurity
 @AllArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @SuppressWarnings("all")
 public class OAuth2ResourceServerSecurityConfiguration {
 
-//    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
-//    String jwkSetUri;
-
+    private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
     @Bean
     public SecurityFilterChain resourceServerSecurityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
@@ -43,10 +43,10 @@ public class OAuth2ResourceServerSecurityConfiguration {
                 .oauth2ResourceServer()
                 .jwt()
                 .decoder(jwtDecoder)
-                // 将jwt信息转换成JwtAuthenticationToken对象
-                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                // 配置解析jwt的方式
+                .jwtAuthenticationConverter(jwtAuthenticationConverter)
                 .and()
-                // 从request请求那个地方中获取 token
+                // 配置从request获取token的方式
                 .bearerTokenResolver(bearerTokenResolver());
         // @formatter:on
         return http.build();
@@ -60,23 +60,6 @@ public class OAuth2ResourceServerSecurityConfiguration {
         bearerTokenResolver.setAllowFormEncodedBodyParameter(false);
 
         return bearerTokenResolver;
-    }
-
-    private JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-//        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        // 去掉 SCOPE_ 的前缀
-//        authoritiesConverter.setAuthorityPrefix("");
-        // 从jwt claim 中那个字段获取权限，模式是从 scope 或 scp 字段中获取
-//        authoritiesConverter.setAuthoritiesClaimName("scope");
-//        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
-        return converter;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public RegisteredClientRepository JdbcRegisteredClientRepository(JdbcTemplate jdbcTemplate) {
-        return new JdbcRegisteredClientRepository(jdbcTemplate);
     }
 
 }

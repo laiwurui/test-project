@@ -6,10 +6,13 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.AllArgsConstructor;
+import org.pedia.starter.security.SecurityAutoConfiguration;
 import org.pedia.starter.security.authorization.password.OAuth2UsernamePasswordAuthenticationConverter;
 import org.pedia.starter.security.authorization.password.OAuth2UsernamePasswordAuthenticationProvider;
+import org.pedia.starter.security.authorization.properties.RsaKeyProperties;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
@@ -19,11 +22,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -31,30 +31,29 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+import sun.security.rsa.RSAPrivateCrtKeyImpl;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.UUID;
 
 /**
  * OAuth authorization server auto configuration
  */
-@AutoConfiguration
+@AutoConfiguration(after = SecurityAutoConfiguration.class)
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableConfigurationProperties(RsaKeyProperties.class)
 @SuppressWarnings("all")
 public class OAuth2AuthorizationServerSecurityConfiguration {
 
@@ -106,11 +105,6 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
     }
 
     @Bean
-    public RegisteredClientRepository JdbcRegisteredClientRepository() {
-        return new JdbcRegisteredClientRepository(jdbcTemplate);
-    }
-
-    @Bean
     public OAuth2AuthorizationService authorizationService(RegisteredClientRepository JdbcRegisteredClientRepository) {
         return new JdbcOAuth2AuthorizationService(jdbcTemplate, JdbcRegisteredClientRepository);
     }
@@ -120,25 +114,40 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
         return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, JdbcRegisteredClientRepository);
     }
 
-//    @Bean
-    public RegisteredClientRepository registeredClientRepository() {
-        // @formatter:off
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("messaging-client")
-                .clientSecret("{noop}222222")
-                .clientName("messaging_client")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.PASSWORD)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).requireProofKey(false).build())
-                .redirectUri("http://localhost:8080/authorized")
-                .scope("message:write")
-                .scope("message:read")
-                .build();
-        // @formatter:on
-        return new InMemoryRegisteredClientRepository(registeredClient);
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthorizationServerSettings providerSettings() {
+        return AuthorizationServerSettings.builder().issuer("http://localhost:8000/system").build();
+    }
+
+    private final RsaKeyProperties rsaKeyProperties;
+
+    @Bean
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    KeyPair generateRsaKey() throws InvalidKeyException {
+        KeyPair keyPair;
+        try {
+//            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+//            keyPairGenerator.initialize(2048);
+//            keyPair = keyPairGenerator.generateKeyPair();
+
+            BASE64Decoder decoder = new BASE64Decoder();
+            byte[] publicKeyBytes = decoder.decodeBuffer(rsaKeyProperties.getPublicKey());
+            byte[] privateKeyBytes = decoder.decodeBuffer(rsaKeyProperties.getPrivateKey());
+            KeyFactory fact = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+            PublicKey pubKey = (PublicKey)fact.generatePublic(pubKeySpec);
+            RSAPrivateKey rsaPrivateKey = RSAPrivateCrtKeyImpl.newKey(privateKeyBytes);
+            keyPair = new KeyPair(pubKey, rsaPrivateKey);
+        }
+        catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+        return keyPair;
     }
 
     @Bean
@@ -158,39 +167,5 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
     @Bean
     public JwtDecoder jwtDecoder(KeyPair keyPair) {
         return NimbusJwtDecoder.withPublicKey((RSAPublicKey) keyPair.getPublic()).build();
-    }
-
-    @Bean
-    public AuthorizationServerSettings providerSettings() {
-        return AuthorizationServerSettings.builder().issuer("http://localhost:8000/system").build();
-    }
-
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        // @formatter:off
-        UserDetails userDetails = User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("123456")
-                .roles("admin","user")
-                .build();
-        // @formatter:on
-
-        return new InMemoryUserDetailsManager(userDetails);
-    }
-
-    @Bean
-    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    KeyPair generateRsaKey() {
-        KeyPair keyPair;
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            keyPair = keyPairGenerator.generateKeyPair();
-        }
-        catch (Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-        return keyPair;
     }
 }

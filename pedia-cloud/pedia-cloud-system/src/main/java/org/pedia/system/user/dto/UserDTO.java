@@ -1,9 +1,6 @@
 package org.pedia.system.user.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.pedia.core.dto.PageDTO;
 
@@ -14,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @Accessors(chain = true)
 @Builder
+@EqualsAndHashCode(callSuper = false)
 public class UserDTO extends PageDTO {
 
     /**

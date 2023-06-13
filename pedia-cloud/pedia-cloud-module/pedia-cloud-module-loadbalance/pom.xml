@@ -3,20 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>pedia-cloud-module</artifactId>
         <groupId>org.pedia</groupId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pedia-cloud</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>pedia-cloud-system</module>
-        <module>pedia-cloud-gateway</module>
-        <module>pedia-cloud-demo</module>
-        <module>pedia-cloud-module</module>
-    </modules>
+    <artifactId>pedia-cloud-module-loadbalance</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

@@ -7,19 +7,22 @@ spring:
     name: system-application
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://localhost:3306/pedia-system?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://192.168.138.131:3306/pedia-system?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
   redis:
-    host: localhost
+    host: 192.168.138.131
     port: 6379
     password: 123456
+    # 授权服务器不需要如下配置
   security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: http://localhost:8000/system/oauth2/jwks
+    key-pair:
+      public-key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqkCMNOOwUrnh0uyCPDubZPxLPz0yf/24N+NlPfvJyAyWzAg7fwJr9rRUrCoacatMm7wgfH0OcMMnAgHBFG8lxz4vGiVUYc7LznoqyAdjVgyJ26dtRDbQJ6dHHEQlRDySr7Hmafywwv3Y4YtgI14zARBO8vKzb7nJwXwFJYsfvgeGGymptBVRUQQbmk33Pkb00dOgTxhK9tFcZNVavfcbuDVt11VsJ+M8HZoeiCfyt+IGScIkd/jE6aouupBwn7hI3jgazqzv03OWKJZqwMeoUGjxojTfWtlLDjkwmFGb+AUOFGlMSwEfKgYLxwC+zySoCdVvCYgVrF0nX91P6ttetQIDAQAB"
+      private-key: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqQIw047BSueHS7II8O5tk/Es/PTJ//bg342U9+8nIDJbMCDt/Amv2tFSsKhpxq0ybvCB8fQ5wwycCAcEUbyXHPi8aJVRhzsvOeirIB2NWDInbp21ENtAnp0ccRCVEPJKvseZp/LDC/djhi2AjXjMBEE7y8rNvucnBfAUlix++B4YbKam0FVFRBBuaTfc+RvTR06BPGEr20Vxk1Vq99xu4NW3XVWwn4zwdmh6IJ/K34gZJwiR3+MTpqi66kHCfuEjeOBrOrO/Tc5YolmrAx6hQaPGiNN9a2UsOOTCYUZv4BQ4UaUxLAR8qBgvHAL7PJKgJ1W8JiBWsXSdf3U/q2161AgMBAAECggEBAJ9aDSFP3/B+VVUT045HCFqMHm4RfJv5wZxl9ZP/gM0Co35TUkS94ommHf6K5fdwqyK1Af8jGgoHTxJ8y9ixc726gWHKgOGPKomXJUXWTG71C2+RlR8c4tXKpy9YxTzKKU3TiGO5hUTtTjtFNfXErJ6ZQhv5eGPhlGrKBxMt1ccJQSmhL4RCcwm15gdfKOHrI5HEO1lAVckkh2L1l5YC6brIWpS68cz6kRwPCPUMWl2hu0HfLVVj5d26zE5dbYqsx3eVvc8qJgIiGBGwfBgFu5QVHxi4DNBBvziad6MTM/5i9tjzu1t2YOSSaAfIacHESFh5ucewD38Tk8pfGG0OTx0CgYEA5dHWcjKfRzJSuZxzfu/PKQd5QBDH4X+qEPyesalpZ/dFgi/FY2CBBJcsIEiJdAtmoMdZtzTuhiBrWai+jSu1WIl026PtcZrdihlwTqZPo//zPN6lDO/1BIkd5Ri7vmBPEYK2G2FUXs73qyUoSF/XvKVNRgkM2QWeFYerNuS5i8MCgYEAvaWPSswk4ezgGc649fI1+9sUsCyjDrecNs4guQyhXkaJEvnTinV96UE1jVl+K5CdqinRSV06IkRHRmF0FnW9+iIEfe1FHJ71gASLz+MFmL3iGMAtM9XzCfd88WNvwhEPjhEBwP1uyIxa7W7slaA93Ziy77U047QK4DCRVu1fXCcCgYEAn4qkjHKIECznMONjamOgNKNzkP4VRH4T2ecFY+BvxDTslAwFw49jAYTQpTi181FW1ZaOuZiNXZ9z5rI2VlpZcjU6Yp/SXmNcGFrAlFjwQLGWclM90VVjitqFXl1lOCwzt7w+H5PZtleHp9ALvvKKGfPHSS9PM/mqXNfqDBmMlXECgYBbONvoOrIzCmHxiAJoK43UC9mztITqe19k7VnIKU8lrgAZZJpgq4tZO8iqqTWLdxCf3WWSSInCGd2++PmCJDixrNNET3FDByNH5Ofro2P5yLyM80PK/0rcrHMpGY+UZeh5iayyTDWRuhGyy/x5LI8VnHHV4/AA54WjuTjv+1Y3WQKBgCzCVBEIpaNA1Y+3Ad3cN0O9tZXOY/qKauH5gqgTVtXzejHBDh4k4HooDNLgoxyh5/pirjgm+7Z9RVOp4Ax68PwyUPOprqY1hPJx5kCQLpaFM4SnHf3g2YJ5EXGiMtlu4mG1UG3aoE0+qCUGtR9Jn9ff76upNTHaEfMiagVR2/qa"
+
+mybatis-plus:
+  mapper-locations: classpath*:org/pedia/**/*Mapper.xml
 
 logging:
   level:

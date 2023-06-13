@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.pedia.system.resource.mapper.ResourceMapper">
+    <select id="getResourceByUserId" resultType="org.pedia.system.resource.entity.Resource" parameterType="java.lang.String">
+        SELECT
+            tr.id,
+            tr.name,
+            tr.path,
+            tr.component,
+            tr.icon,
+            tr.type,
+            tr.order_num,
+            tr.authority,
+            tr.parent_id,
+            tr.leaf,
+            tr.create_by,
+            tr.create_time,
+            tr.update_by,
+            tr.update_time,
+            tr.del_flag
+        FROM t_user_role tur
+             INNER JOIN t_role_resource trr ON trr.role_id = tur.role_id
+             INNER JOIN t_resource tr ON tr.id = trr.resource_id
+        WHERE
+            tur.user_id = #{ userId } and tr.del_flag = 0
+    </select>
+</mapper>

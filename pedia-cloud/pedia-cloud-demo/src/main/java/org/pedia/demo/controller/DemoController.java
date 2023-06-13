@@ -15,7 +15,7 @@ public class DemoController {
     }
 
     @GetMapping("/demo2")
-    @PreAuthorize("hasAuthority('SCOPE_message:write')")
+    @PreAuthorize("hasAuthority('user:add')")
     public Result<Object> demo2() {
         return Result.success("demo2");
     }
