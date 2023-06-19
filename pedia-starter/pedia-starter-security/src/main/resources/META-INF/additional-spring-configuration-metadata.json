@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "spring.security.key-pair.public-key-location",
+      "type": "org.springframework.core.io.Resource",
+      "description": "Description for spring.security.key-pair.public-key-location."
+    },
+    {
+      "name": "spring.security.key-pair.private-key-location",
+      "type": "org.springframework.core.io.Resource",
+      "description": "Description for spring.security.key-pair.private-key-location."
+    }
+  ]
+}

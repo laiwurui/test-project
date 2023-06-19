@@ -7,6 +7,8 @@ import org.pedia.system.user.dto.UserDTO;
 import org.pedia.system.user.entity.User;
 import org.pedia.system.user.service.IUserService;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,8 +20,9 @@ public class UserController extends GenericController<User> {
 
     @GetMapping("/test")
     @PreAuthorize("hasAuthority('user:add')")
-    public Result<String> testOauth() {
-        return Result.success("成功");
+    public Result<Object> testOauth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return Result.success(authentication);
     }
 
     @PostMapping("/add")

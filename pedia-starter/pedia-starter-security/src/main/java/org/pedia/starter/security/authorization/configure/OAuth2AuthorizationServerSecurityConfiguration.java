@@ -31,6 +31,7 @@ import org.springframework.security.oauth2.server.authorization.JdbcOAuth2Author
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -38,14 +39,13 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 import sun.security.rsa.RSAPrivateCrtKeyImpl;
 
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.KeyPair;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.UUID;
 
 /**
  * OAuth authorization server auto configuration
@@ -115,6 +115,11 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
     }
 
     @Bean
+    public RegisteredClientRepository JdbcRegisteredClientRepository() {
+        return new JdbcRegisteredClientRepository(jdbcTemplate);
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -128,7 +133,7 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
 
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-    KeyPair generateRsaKey() throws InvalidKeyException {
+    KeyPair generateRsaKey() {
         KeyPair keyPair;
         try {
 //            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -136,13 +141,19 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
 //            keyPair = keyPairGenerator.generateKeyPair();
 
             BASE64Decoder decoder = new BASE64Decoder();
-            byte[] publicKeyBytes = decoder.decodeBuffer(rsaKeyProperties.getPublicKey());
-            byte[] privateKeyBytes = decoder.decodeBuffer(rsaKeyProperties.getPrivateKey());
-            KeyFactory fact = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(publicKeyBytes);
-            PublicKey pubKey = (PublicKey)fact.generatePublic(pubKeySpec);
-            RSAPrivateKey rsaPrivateKey = RSAPrivateCrtKeyImpl.newKey(privateKeyBytes);
-            keyPair = new KeyPair(pubKey, rsaPrivateKey);
+//            byte[] publicKeyBytes = decoder.decodeBuffer(rsaKeyProperties.getPublicKey());
+//            byte[] privateKeyBytes = decoder.decodeBuffer(rsaKeyProperties.getPrivateKey());
+//            KeyFactory fact = KeyFactory.getInstance("RSA");
+//            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+//            PublicKey pubKey = (PublicKey)fact.generatePublic(pubKeySpec);
+//            RSAPrivateKey rsaPrivateKey = RSAPrivateCrtKeyImpl.newKey(privateKeyBytes);
+//            keyPair = new KeyPair(pubKey, rsaPrivateKey);
+
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+            RSAPublicKey publicKey = (RSAPublicKey) factory
+                    .generatePublic(new X509EncodedKeySpec(decoder.decodeBuffer(this.rsaKeyProperties.readPublicKey())));
+            RSAPrivateKey privateKey = RSAPrivateCrtKeyImpl.newKey(decoder.decodeBuffer(this.rsaKeyProperties.readPrivateKey()));
+            keyPair = new KeyPair(publicKey, privateKey);
         }
         catch (Exception ex) {
             throw new IllegalStateException(ex);
@@ -157,7 +168,6 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
         // @formatter:off
         RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
                 .build();
         // @formatter:on
         JWKSet jwkSet = new JWKSet(rsaKey);

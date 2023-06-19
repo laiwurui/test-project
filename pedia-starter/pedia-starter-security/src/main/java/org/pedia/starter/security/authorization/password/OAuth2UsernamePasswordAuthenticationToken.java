@@ -13,8 +13,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.util.Assert;
 
 /**
- * 自定义Oauth2 密码模式认证Token
- * @author zhongyu
+ * Oauth2认证,密码模式
  */
 public class OAuth2UsernamePasswordAuthenticationToken extends AbstractAuthenticationToken {
 

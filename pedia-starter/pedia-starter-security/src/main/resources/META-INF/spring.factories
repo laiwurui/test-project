@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration = \
-org.pedia.starter.security.SecurityAutoConfiguration
+org.pedia.starter.security.SecurityAutoConfiguration,\
+org.pedia.starter.security.jwe.jwt.configure.JWTEncryptAutoConfiguration

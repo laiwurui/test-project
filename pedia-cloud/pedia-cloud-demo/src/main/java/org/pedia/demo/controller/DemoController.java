@@ -2,6 +2,8 @@ package org.pedia.demo.controller;
 
 import org.pedia.core.vo.Result;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +19,7 @@ public class DemoController {
     @GetMapping("/demo2")
     @PreAuthorize("hasAuthority('user:add')")
     public Result<Object> demo2() {
-        return Result.success("demo2");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return Result.success(authentication);
     }
 }
