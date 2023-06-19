@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import java.lang.reflect.Proxy;
 
 /**
- * 开启jwe之后会对jwt中的信息进行一次加密，防止claim信息对外暴露
+ * 开启之后会对jwt中的信息进行一次加密，防止claim信息对外暴露
  * 若claim中无保密信息，可以不使用
  */
 @EnableConfigurationProperties(JWTProperties.class)
